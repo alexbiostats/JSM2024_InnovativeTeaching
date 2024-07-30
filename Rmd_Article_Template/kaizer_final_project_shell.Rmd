@@ -1,0 +1,217 @@
+---
+output:
+  bookdown::pdf_document2:
+    toc: false
+    number_sections: false
+documentclass: article
+geometry: margin=0.95in
+classoption:
+- twocolumn
+bibliography: kaizer_simulation_sample1.bib
+csl: alex_vancouver.csl
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(kableExtra) # load for tables
+library(tableone)
+library(labelled)
+
+dat <- read.csv('camp_teach_project.csv')
+```
+
+<!-- Title here: -->
+# \textit{Title Here}
+
+<!-- Name here: -->
+Alexander M. Kaizer, PhD^[Department of Biostatistics and Informatics, Colorado School of Public Health, University of Colorado Anschutz Medical Campus, Aurora, CO]
+
+## Abstract
+
+Brief abstract here.
+
+## Introduction
+
+Introduction for applied/clinical research study.
+
+If you end up wanting to use an external reference system, one option is to create a `.bib` file (used often in LaTeX for references). You can export Google Scholar references as a BiBTeX entry to add to your `.bib` reference file. In the YAML header of this document you see:
+
+```
+bibliography: kaizer_simulation_sample1.bib
+csl: alex_vancouver.csl
+```
+
+Change the bibliography file to your own file. The `.csl` file controls the style of the formatting (e.g., Vancouver, APA, MLA, etc.). You can use the `alex_vancouver.csl` file or download another file of your choosing to use. To reference the `.bib` file entries in the text, use square brackets with @ to add the reference in question: `[@student1908probable; @wiki_Students_t-test]` creates [@student1908probable; @wiki_Students_t-test].
+
+If you are not using a `.bib` file (e.g., manually entering your references by hand or just using footnotes), remove the bibliography and csl lines from the YAML header, as well as the chunk of code towards the end of the document that generates the references.
+
+## Hypothesis (or Research Question)
+
+Brief description of the research question and/or hypothesis to be examined.
+
+## Materials and Methods
+
+Describe how the data was collected. For example, what type of study was it (observational versus randomized; cohort versus cross-sectional versus case-control; etc.)? Where did the study take place? Were there certain sponsors (e.g., NIH, an industry group or company, etc.)?
+
+## Analysis Plan (or Statistical Methods)
+
+This is sometimes included as a subsection of the "Materials and Methods" (or "Methods") section, but we can also set it as its own section. We want to describe how we will be summarizing and analyzing the data. For example, do you report continuous variables as mean (standard deviation), median (1st quartile, 3rd quartile), median (interquartile range), median (minimum, maximum), etc.? Are categorical variables presented as N (%), % (N), etc.? What statistical methods were used to answer your research question(s)? How did you (briefly) evaluate any assumptions (e.g., graphical, a formal test, both)? What software and version did you use?
+
+
+## Results
+
+Write your results in this section. The interpretation or implications of results will primarily appear in the following Discussion/Conclusion section.
+
+For creating Table 1's, you may also use something like the `tableone` package:
+
+```{r table-one, echo=F}
+# rename variables to have informative labels
+dat$GENDERf <- factor(dat$GENDER, 
+                      levels=c('m','f'), 
+                      labels=c('Male','Female'))
+dat$ETHNICf <- factor(dat$ETHNIC,
+                      levels=c('w','b','h','o'), 
+                      labels=c('White','Black','Hispanic','Other'))
+
+# create Table 1
+variables <- c('GENDERf','ETHNICf','age_rz','hemog')
+cat_vars <- c('GENDERf','ETHNICf')
+strata <- 'TG'
+
+# Modify labels
+var_label(dat$GENDERf) <- 'Gender'
+var_label(dat$ETHNICf) <- 'Race/Ethnicity'
+var_label(dat$age_rz) <- 'Age (yrs)'
+var_label(dat$hemog) <- 'Hemoglobin (g/dl)'
+
+tab1 <- CreateTableOne(vars = variables,
+                       factorVars = cat_vars,
+                       strata = strata,
+                       test = FALSE,
+                       data=dat)
+
+tab1_forkbl <- print(tab1, varLabels=T, printToggle = F)
+kbl( tab1_forkbl,
+     caption = 'Descriptive Summary of Sample', 
+     booktabs=T, align='ccc',
+     col.names = c('Budesonide','Nedocromil','Albuterol'))  %>%
+  add_indent(4:7) %>%
+  kable_styling(latex_options = "HOLD_position")
+```
+
+Here we see that our table is too wide and bleeds over. One option is to make the table font smaller (but check for readability):
+
+```{r table-one-small, echo=F}
+kbl( tab1_forkbl,
+     caption = 'Descriptive Summary of Sample', 
+     booktabs=T, align='ccc',
+     col.names = c('Budesonide','Nedocromil','Albuterol'))  %>%
+  add_indent(4:7) %>%
+  kable_styling(latex_options = "HOLD_position", font_size = 4.5) 
+# ADDED font_size ARGUMENT AND MADE MUCH SMALLER
+```
+
+Another option is to place tables and/or figures on their own page with a single column (e.g., make page 2 one column and revert back to two columns for page 3; make the 3rd page for your tables/figures that don't fit nicely in the text).
+
+
+
+<!-- Add \onecolumn to convert from two columns to one, but it will insert a page break...so some manual placement experimentation will likely be needed -->
+
+\onecolumn
+
+Here we see the results for "Table 1", describing our sample, but formatted to only include one column:
+
+```{r table-one-onecol, echo=F}
+kbl( tab1_forkbl,
+     caption = 'Descriptive Summary of Sample', 
+     booktabs=T, align='ccc',
+     col.names = c('Budesonide','Nedocromil','Albuterol'))  %>%
+  add_indent(4:7) %>%
+  kable_styling(latex_options = "HOLD_position")
+```
+
+An example of a figure is below. In the Rmd file, the `chunk-name` can be changed to whatever you want so that it can be referenced using `\ref{tab:chunk-name}` (where "tab" represents a table, "fig" is for a figure). 
+
+**NOTE: the code chunks have `echo=F` to suppress the code from appearing in your limited 3 page report. It can still automatically appear at the end in the appendix with a nifty line of code that appears at the end!**
+
+```{r chunk-name, fig.cap="Caption for Figure", echo=F}
+# Create figure to demonstrate something graphically
+
+set.seed(515) # set seed to reproduce example figure
+hist(rnorm(100), xlab='X')
+```
+
+One example you can use to create a table in our PDF output example here is with the `kableExtra` package:
+
+
+<!-- Add \twocolumn to revert back to two columns from one, but it will insert a page break...so some manual placement experimentation will likely be needed -->
+
+
+\twocolumn
+
+```{r result-table, echo=F}
+# Extract results for null case and scenario with expected 80% power
+tab_res <- matrix(1:8, nrow=4, ncol=2) # made up matrix with results
+rownames(tab_res) <- c('Row 1','Row 2','Row 3','Row 4')
+
+# Create table of results
+kbl(tab_res, 
+    caption = 'Descriptive Summary of Sample', 
+    booktabs=T, align='cc',
+    col.names = c('Column 1 of Results','Column 2 of Results'))  %>%
+    collapse_rows(columns=1, latex_hline='major', valign='middle') %>%
+    kable_styling(latex_options = "HOLD_position")
+```
+
+
+## Discussion (or Conclusion)
+
+Write your conclusion here where you interpret the results for your given context, including any limitations.
+
+
+
+Lorem ipsum dolor sit amet, ad modo invidunt eum, congue menandri signiferumque ex per. Sed dico alienum id, ea causae prompta vis. Eu apeirian dissentiunt sed. Nam doming consectetuer ei, congue consulatu sit cu.
+
+Te alii fabellas pri, modo audire eum at. Eum eros assum abhorreant ea, brute ubique malorum pro cu, ad probo inermis vocibus eos. Eu quem vidit labitur usu, sit te numquam offendit, te modus accommodare est. Eum suscipit hendrerit ea, ne sint veniam per. Possim officiis ei duo.
+
+Eos ei justo doctus concludaturque. Per cu civibus mediocritatem, erant nullam populo eam et. Eum persius incorrupte ei, antiopam iudicabit instructior eum id. Qui ut zril eruditi disputando, nam ei molestie gloriatur, ex eos diceret recusabo necessitatibus. Ei vis idque delenit commune, malis aliquando philosophia sea ut.
+
+Errem nihil recusabo id vix. Ius no molestie corrumpit. Ex adhuc augue postea nam, duo in unum nonumy. Eu stet platonem vix.
+
+Cu vis vide eirmod aliquam, his ipsum diceret constituam id. Ex iisque regione interpretaris has, at nostro scripta gubergren qui, vim ea error luptatum necessitatibus. Per diam saepe ex, ea nec amet aliquip quaerendum. Facete bonorum deseruisse at vix. Eu diceret facilisis interesset nec, unum ferri adhuc te mel. Nonumy graece impedit ut ius, ei deleniti liberavisse accommodare vis.
+
+Lorem ipsum dolor sit amet, ad modo invidunt eum, congue menandri signiferumque ex per. Sed dico alienum id, ea causae prompta vis. Eu apeirian dissentiunt sed. Nam doming consectetuer ei, congue consulatu sit cu.
+
+Te alii fabellas pri, modo audire eum at. Eum eros assum abhorreant ea, brute ubique malorum pro cu, ad probo inermis vocibus eos. Eu quem vidit labitur usu, sit te numquam offendit, te modus accommodare est. Eum suscipit hendrerit ea, ne sint veniam per. Possim officiis ei duo.
+
+Eos ei justo doctus concludaturque. Per cu civibus mediocritatem, erant nullam populo eam et. Eum persius incorrupte ei, antiopam iudicabit instructior eum id. Qui ut zril eruditi disputando, nam ei molestie gloriatur, ex eos diceret recusabo necessitatibus. Ei vis idque delenit commune, malis aliquando philosophia sea ut.
+
+Errem nihil recusabo id vix. Ius no molestie corrumpit. Ex adhuc augue postea nam, duo in unum nonumy. Eu stet platonem vix.
+
+Cu vis vide eirmod aliquam, his ipsum diceret constituam id. Ex iisque regione interpretaris has, at nostro scripta gubergren qui, vim ea error luptatum necessitatibus. Per diam saepe ex, ea nec amet aliquip quaerendum. Facete bonorum deseruisse at vix. Eu diceret facilisis interesset nec, unum ferri adhuc te mel. Nonumy graece impedit ut ius, ei deleniti liberavisse accommodare vis.
+
+Lorem ipsum dolor sit amet, ad modo invidunt eum, congue menandri signiferumque ex per. Sed dico alienum id, ea causae prompta vis. Eu apeirian dissentiunt sed. Nam doming consectetuer ei, congue consulatu sit cu.
+
+Te alii fabellas pri, modo audire eum at. Eum eros assum abhorreant ea, brute ubique malorum pro cu, ad probo inermis vocibus eos. Eu quem vidit labitur usu, sit te numquam offendit, te modus accommodare est. Eum suscipit hendrerit ea, ne sint veniam per. Possim officiis ei duo.
+
+Eos ei justo doctus concludaturque. Per cu civibus mediocritatem, erant nullam populo eam et. Eum persius incorrupte ei, antiopam iudicabit instructior eum id. Qui ut zril eruditi disputando, nam ei molestie gloriatur, ex eos diceret recusabo necessitatibus. Ei vis idque delenit commune, malis aliquando philosophia sea ut.
+
+There are some limitations with the given study. One is the discussion was written in Latin instead of English. Another is that data collection of potential confounders had high levels of missingness, which may lead to additional uncertainty for their effects. For the given project, certain models or methods may ultimately be more appropriate for the chosen research question but were not covered in the scope of BIOS 6611 (this would not be a reasonable limitation in a real paper, but for our class project it can very well be true!).
+
+
+<!-- The code below creates a new page with a single column for your references and code used in the manuscript -->
+\newpage
+\onecolumn
+
+## References
+
+\vspace{2mm} 
+
+<!-- Remove the following line of code if not using a .bib file to generate references -->
+<div id="refs"></div>
+
+## Code Appendix 
+<!-- The following code pulls all your code chunks from the paper and puts them here at the end (so you can keep "echo=F" in the code chunks above but they still appear here) -->
+```{r, ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+```
